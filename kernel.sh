@@ -49,9 +49,11 @@ export KBUILD_BUILD_USER="QuantumMech2000"
 export KBUILD_BUILD_HOST="TeamQuantum"
 export TOOLCHAIN="${HOME}/gcc-linaro-5.5.0-2017.10-x86_64_aarch64-linux-gnu/";
 export DEFCONFIG="santoni_defconfig";
-export ZIP_DIR="${KERNELDIR}/files/";
+export ZIP_DIR="${HOME}/${KERNELDIR}/files/";
 export IMAGE="${OUTDIR}/arch/${ARCH}/boot/Image.gz-dtb";
-export MAKE_TYPE="nonTreble"
+export CC="${HOME}/dragontc-8.0/bin/clang"
+export CLANG_TRIPLE=aarch64-linux-gnu- \
+export MAKE_TYPE="Treble"
 
 if [[ -z "${JOBS}" ]]; then
     export JOBS="$(nproc --all)";
@@ -65,7 +67,7 @@ export TCVERSION1="$(${CROSS_COMPILE}gcc --version | head -1 |\
 awk -F '(' '{print $2}' | awk '{print tolower($1)}')"
 export TCVERSION2="$(${CROSS_COMPILE}gcc --version | head -1 |\
 awk -F ')' '{print $2}' | awk '{print tolower($1)}')"
-export ZIPNAME="${KERNELNAME}-NONTREBLE-BUILD-$(date +%Y%m%d-%H%M).zip"
+export ZIPNAME="${KERNELNAME}-${DEVICE}-TREBLE-BUILD-$(date +%Y%m%d-%H%M).zip"
 export FINAL_ZIP="${ZIP_DIR}/${ZIPNAME}"
 
 [ ! -d "${ZIP_DIR}" ] && mkdir -pv ${ZIP_DIR}
@@ -94,8 +96,8 @@ if [[ "$@" =~ "clean" ]]; then
     ${MAKE} clean
 fi
 
-curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendSticker -d sticker="CAADBQADFgADx8M3D8ZwwIWZRWcwAg"  -d chat_id=$CHAT_ID
-curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendMessage -d text="Nightly Build Scheduled for $KERNELNAME Kernel (Treble) " -d chat_id=$CHAT_ID
+# curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendSticker -d sticker="CAADBQADFgADx8M3D8ZwwIWZRWcwAg"  -d chat_id=$CHAT_ID
+curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendMessage -d text="Beta Build Scheduled for $KERNELNAME Kernel (Treble) " -d chat_id=$CHAT_ID
 ${MAKE} $DEFCONFIG;
 START=$(date +"%s");
 echo -e "Using ${JOBS} threads to compile"
@@ -135,14 +137,14 @@ if [[ ${success} == true ]]; then
 message="CI build of Jaguar Kernel completed with the latest commit."
 time="Build took $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds."
 
-#curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendMessage -d text="$(git log --pretty=format:'%h : %s' -5)" -d chat_id=$CHAT_ID
+curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendMessage -d text="$(git log --pretty=format:'%h : %s' -5)" -d chat_id=$CHAT_ID
 curl -F chat_id="-1001374080497" -F document=@"${ZIP_DIR}/$ZIPNAME" -F caption="$message $time" https://api.telegram.org/bot$BOT_API_KEY/sendDocument
 
 curl -s -X POST https://api.telegram.org/bot$BOT_API_KEY/sendMessage -d text="
 ♔♔♔♔♔♔♔BUILD-DETAILS♔♔♔♔♔♔♔
 🖋️ Author     : vvrRockStar
 🛠️ Make-Type  : $MAKE_TYPE
-🗒️ Buld-Type  : Nightly(CLosed Beta)
+🗒️ Buld-Type  : ClosedBeta
 ⌚ Build-Time : $time
 🗒️ Zip-Name   : $ZIPNAME
 "  -d chat_id=$CHAT_ID
